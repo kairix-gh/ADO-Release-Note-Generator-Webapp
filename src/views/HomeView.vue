@@ -38,7 +38,7 @@
                 </svg>
                 <span class="sr-only">Loading...</span>
             </div>
-            <span>Downloading...</span>
+            <span>Downloading</span>
         </div>
         <span v-else>Download Notes</span>
     </button>
