@@ -29,6 +29,9 @@
         </p>
         <JsonEditorVue v-model="config.currentConfig" mode="tree" class="jse-theme-dark" :mainMenuBar="false" />
     </div>
+    <div class="" v-show="takingLongTime">
+        <p>Hmmm.. this seems to be taking a while right? Might be the server is coming online from a cold start.</p>
+    </div>
     <button @click.prevent="downloadNotes" type="button" class="mt-4 w-40 h-10 text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 mr-2 mb-2 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none dark:focus:ring-blue-800 disabled:bg-gray-600" :disabled="processing">
         <div class="inline-flex items-center justify-center" v-if="processing">
             <div role="status">
@@ -54,6 +57,7 @@ import { apiClient } from "@/services/api"
 
 const useAdvancedMode = ref(false);
 const processing = ref(false);
+const takingLongTime = ref(false);
 
 const config = useConfigStore();
 
@@ -67,11 +71,19 @@ function updateJSON() {
 
 async function downloadNotes() {
     processing.value = true;
+    takingLongTime.value = false;
     updateJSON();
 
     await apiClient.setToken(config.functionKey);
+    var timer;
     try {
+        timer = setTimeout(() => {
+            takingLongTime.value = true;
+        }, 5000);
+
         const response = await apiClient.getReleaseNotes(config.currentConfig!);
+        clearTimeout(timer);
+
         if (response.status >= 200 && response.status <= 299) {
             const file = window.URL.createObjectURL(new Blob([response.data]));
 
@@ -85,13 +97,13 @@ async function downloadNotes() {
         } else {
             console.log("Download failed", response);
         }
-
+        
         processing.value = false;
     } catch {
+        clearTimeout(timer);        
         processing.value = false;
     }
 }
-
 </script>
 
 
